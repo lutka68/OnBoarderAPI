@@ -1,0 +1,271 @@
+openapi: 3.0.3
+tags: [name: "operations"]            
+
+info:
+  title: OnBoarder API
+  description: API for creating Shipper Configuration
+  version: 1.0.0
+  contact:
+    {
+      name: "API Support",
+      url: "http://www.fores.group/support",
+      "email": "support@fores.com"
+    }
+
+servers:
+- url: https://tools.dpd.sk/shipper-admin-sac-api/configuration
+  description: OnBoarder API
+
+paths:
+  "/configuration/create/Shp650":
+    post:
+      summary: Create Shipper Configuration
+      description: Create Shipper Configuration for given Customer DelisID
+      operationId: createConfiguration
+      tags: ["operations"]
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - customerDelisId
+                - emailAddress
+                - activateConfiguration
+                - parcelNumberRangeSize
+              properties:
+                customerDelisId:
+                  type: string
+                  description: Customer DelisID
+                emailAddress:
+                  type: string
+                  description: Email address
+                pickupAddressCrmIds: 
+                  type: array
+                  description: List of CRM ids for pickup addresses
+                contactPersonCrmIds: 
+                  type: array
+                  description: List of CRM ids for contact persons
+                bankAccountCrmIds: 
+                  type: array
+                  description: List of CRM ids for bank accounts
+                productCodes: 
+                  type: array
+                  description: List of required product codes
+                parcelNumberRangeSize:
+                  type: integer
+                  description: Parcel number range size
+                activateConfiguration:
+                  type: boolean
+                  description: true if configuration needs to be activated
+                createApiAccess:
+                  type: boolean
+                  description: true if configuration has to have api access
+            examples:
+              requestBody: 
+                summary: Request body example
+                value: {"customerDelisId":"ZA3805","emailAddress":"abc@abs.sk","pickupAddressCrmIds":["5d976fa4-e8a0-4ddd-b3f9-ce60befeeb74"],"contactPersonCrmIds":["0c146e74-3fc9-4a6b-9fd6-2c22b5710f63"],"bankAccountCrmIds":[],"productCodes":["COD","Home"],"parcelNumberRangeSize":1,"activateConfiguration":true,"createApiAccess":false}
+        required: true
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                oneOf:
+                  - $ref: '#/components/schemas/CreateConfigurationApiResultOk'
+                  - $ref: '#/components/schemas/ApiResultError'
+              examples:
+                success:
+                  summary: Successfull
+                  value: {"success": true,"apiAccess":{"login":"user@hotmail.com","key": "rs1xvexkh3xsx9dk402m8g136u69p1zn"}}
+                unsuccess:
+                  summary: Unsuccessfull
+                  value: {"success": true,"errorCode":500,"errorMessage": "Unexpected error in creating api access for configuration."}
+  "/configuration/create-api-access/Shp650":
+    post:
+      summary: Configuration API access
+      description: Create API access for Shipper Configuration that belongs to given Customer DelisID
+      operationId: createApiAccessConfiguration
+      tags: ["operations"]
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                customerDelisId:
+                  type: string
+                  description: Customer DelisID
+                login:
+                  type: string
+                  description: Shipper login
+            examples:
+              requestBody: 
+                summary: Request body example
+                value: {"customerDelisId":"KE0561","login":"admin@KE0561"}
+        required: true
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                oneOf:
+                  - $ref: '#/components/schemas/CreateApiAccessConfigurationApiResultOk'
+                  - $ref: '#/components/schemas/ApiResultError'
+              examples:
+                success:
+                  summary: Successfull
+                  value: {"success": true,"apiAccess":{"login":"user@hotmail.com","key": "rs1xvexkh3xsx9dk402m8g136u69p1zn"}}
+                unsuccess:
+                  summary: Unsuccessfull
+                  value: {"success": true,"errorCode":500,"errorMessage": "Unexpected error in creating api access for configuration."}
+  "/configuration/get/Shp650/{delisId}":
+    parameters:
+      - name: delisId
+        in: path
+        description: Customer DelisID
+        required: true
+        schema:
+          type: string
+    get:
+      summary: Configuration ID belong to Customer DelisID
+      description: Returns Configuration ID for given Customer DelisID
+      operationId: getConfiguration
+      tags: ["operations"]
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                oneOf:
+                  - $ref: '#/components/schemas/GetConfigurationApiResultOk'
+                  - $ref: '#/components/schemas/ApiResultError'
+              examples:
+                success:
+                  summary: Successfull
+                  value: {"success": true,"configurationId":"8419","activeConfiguration":true}
+                unsuccess:
+                  summary: Unsuccessfull
+                  value: {"success": true,"errorCode":500,"errorMessage": "Unexpected error in getting configuration details."}
+  "/configuration/Shp650/{delisId}":
+    parameters:
+      - name: delisId
+        in: path
+        description: Customer DelisID
+        required: true
+        schema:
+          type: string
+    delete:
+      summary: Delete Shipper Configuration
+      description: Delete Shipper Configuration for given Customer DelisID
+      operationId: deleteConfiguration
+      tags: ["operations"]
+      responses:
+        "200":
+          description: Result
+          content:
+            application/json:
+              schema:
+                oneOf:
+                  - $ref: '#/components/schemas/DeleteConfigurationApiResultOk'
+                  - $ref: '#/components/schemas/ApiResultError'
+              examples:
+                success:
+                  summary: Successfull
+                  value: {"success": true,"configurationId":"8419"}
+                unsuccess:
+                  summary: Unsuccessfull
+                  value: {"success": true,"errorCode":500,"errorMessage": "Unexpected error in delete configuration."}
+
+                 
+components:
+  schemas:
+    CreateConfigurationApiResultOk:
+      type: object
+      properties:
+        success:
+          type: boolean
+          description: true if customer has Shipper Configuration
+        configurationId:
+          type: string
+          format: "[0-9]{1,255}"
+          description: Configuration ID
+        adminAccount:
+          type: object
+          description: Login details
+          properties:
+            login:
+              type: string
+              description: Shipper login
+            password:
+              type: string
+              description: Shipper password
+            email:
+              type: string
+              description: Email
+        apiAccess:
+          type: object
+          description: Api access details
+          properties:
+            login:
+              type: string
+              description: API login
+            key:
+              type: string
+              description: API key
+    CreateApiAccessConfigurationApiResultOk:
+      type: object
+      properties:
+        success:
+          type: boolean
+          description: true if customer has Shipper Configuration
+        apiAccess:
+          type: object
+          description: Api access details
+          properties:
+            login:
+              type: string
+              description: API login
+            key:
+              type: string
+              description: API key
+    GetConfigurationApiResultOk:
+      type: object
+      properties:
+        success:
+          type: boolean
+          description: true if customer has Shipper Configuration
+        configurationId:
+          type: string
+          format: "[0-9]{1,255}"
+          description: Configuration ID
+        activeConfiguration:
+          type: boolean
+          description: true if Shipper Configuration is active
+    DeleteConfigurationApiResultOk:
+      type: object
+      properties:
+        success:
+          type: boolean
+          description: true if customer had Shipper Configuration
+        configurationId:
+          type: string
+          format: "[0-9]{1,255}"
+          description: Configuration ID
+    ApiResultError:
+      type: object
+      properties:
+        success:
+          type: boolean
+          enum: [false]
+          description: false if something went wrong
+        errorCode:
+          type: integer
+          enum: [500]
+          description: Error code
+        errorMessage:
+          type: string
+          description: Error details
